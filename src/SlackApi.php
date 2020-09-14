@@ -5,7 +5,6 @@ use RuntimeException;
 
 /**
  * Class Slack
- * @package O6
  */
 class SlackApi
 {
