@@ -6,7 +6,7 @@ Simple class for making requests to the Slack API or Slack Webhooks.  Not affili
 ## Usage
 
 ```php
-use cjrasmussen\SlackApi;
+use cjrasmussen\SlackApi\SlackApi;
 
 // INVITE A USER TO A CHANNEL
 $slack = new SlackApi($token);
