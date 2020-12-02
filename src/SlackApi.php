@@ -45,14 +45,16 @@ class SlackApi
 	public function request($type, $method, ?array $args = [])
 	{
 		$url = $this->api_url . $method;
-		$args['token'] = $this->token;
 
 		if (($type === 'GET') AND (count($args))) {
 			$url .= '?' . http_build_query($args);
 		}
 
+		$header = ['Authorization: Bearer ' . $this->token];
+
 		$c = curl_init();
 		curl_setopt($c, CURLOPT_URL, $url);
+		curl_setopt($c, CURLOPT_HTTPHEADER, $header);
 		curl_setopt($c, CURLOPT_RETURNTRANSFER, true);
 
 		switch ($type) {

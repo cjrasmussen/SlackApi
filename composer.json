@@ -1,7 +1,7 @@
 {
   "name": "cjrasmussen/slack-api",
   "description": "Simple helper for interacting with Slack's API",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "keywords": ["Slack"],
   "homepage": "https://www.clarkrasmussen.com",
   "license": "MIT",
