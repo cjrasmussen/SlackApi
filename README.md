@@ -2,7 +2,6 @@
 
 Simple class for making requests to the Slack API or Slack Webhooks.  Not affiliated with Slack.
 
-
 ## Usage
 
 ```php
@@ -26,7 +25,7 @@ $response = (new SlackApi($webhook_url))->sendMessage($msg);
 
 ## More Examples
 
-More examples, as well as other things I've learned using the Slack API, are [available at my blog](https://blog.cjr.dev/?s=Slack).
+More examples, as well as other things I've learned using the Slack API, are [available at my blog](https://cjr.dev/?s=Slack).
 
 ## Installation
 
