@@ -3,7 +3,7 @@
   "description": "Simple helper for interacting with Slack's API",
   "version": "1.0.3",
   "keywords": ["Slack"],
-  "homepage": "https://www.clarkrasmussen.com",
+  "homepage": "https://cjr.dev",
   "license": "MIT",
   "authors": [
     {
