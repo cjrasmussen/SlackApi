@@ -1,6 +1,8 @@
 <?php
+
 namespace cjrasmussen\SlackApi;
 
+use JsonException;
 use RuntimeException;
 
 /**
@@ -8,30 +10,65 @@ use RuntimeException;
  */
 class SlackApi
 {
-	private $token;
-	private $api_url = 'https://slack.com/api/';
-	private $webhook_url;
+	private ?string $token = null;
+	private ?string $api_url = 'https://slack.com/api/';
+	private ?string $webhook_url = null;
 
 	/**
 	 * Slack constructor.
 	 *
-	 * @param string $mixed - Slack token or webhook URL
+	 * @param string|null $mixed - Slack token or webhook URL
 	 * @param string|null $team - Slack team URL part
 	 * @param string|null $webhook_url - Slack webhook URL if not provided as $mixed
 	 */
-	public function __construct($mixed, $team = null, $webhook_url = null)
+	public function __construct(?string $mixed = null, ?string $team = null, ?string $webhook_url = null)
 	{
-		if ((false !== strpos($mixed, 'hooks.slack')) AND ($webhook_url === null)) {
-			$this->token = null;
+		if (($webhook_url === null) && (false !== strpos($mixed, 'hooks.slack'))) {
 			$this->webhook_url = $mixed;
-		} else {
+		} elseif ($mixed) {
 			$this->token = $mixed;
 			$this->webhook_url = $webhook_url;
 		}
 
 		if ($team) {
-			$this->api_url = 'https://' . $team . '.slack.com/api/';
+			$this->setTeam($team);
 		}
+	}
+
+	/**
+	 * Set the webhook URL for sending messages
+	 *
+	 * @param string $webhook_url
+	 * @return self
+	 */
+	public function setWebhookUrl(string $webhook_url): self
+	{
+		$this->webhook_url = $webhook_url;
+		return $this;
+	}
+
+	/**
+	 * Set the team for executing API requests
+	 *
+	 * @param string $team
+	 * @return self
+	 */
+	public function setTeam(string $team): self
+	{
+		$this->api_url = 'https://' . $team . '.slack.com/api/';
+		return $this;
+	}
+
+	/**
+	 * Set the token for executing API requests
+	 *
+	 * @param string $token
+	 * @return self
+	 */
+	public function setToken(string $token): self
+	{
+		$this->token = $token;
+		return $this;
 	}
 
 	/**
@@ -40,13 +77,19 @@ class SlackApi
 	 * @param string $type
 	 * @param string $method
 	 * @param array|null $args
-	 * @return mixed
+	 * @return object
+	 * @throws JsonException
 	 */
-	public function request($type, $method, ?array $args = [])
+	public function request(string $type, string $method, ?array $args = []): object
 	{
+		if (!$this->token) {
+			$msg = 'Cannot execute Slack API request with no API token defined.';
+			throw new RuntimeException($msg);
+		}
+
 		$url = $this->api_url . $method;
 
-		if (($type === 'GET') AND (count($args))) {
+		if (($type === 'GET') && (count($args))) {
 			$url .= '?' . http_build_query($args);
 		}
 
@@ -72,7 +115,7 @@ class SlackApi
 		$response = curl_exec($c);
 		curl_close($c);
 
-		$data = json_decode($response);
+		$data = json_decode($response, false, 512, JSON_THROW_ON_ERROR);
 		if (json_last_error() !== JSON_ERROR_NONE) {
 			throw new RuntimeException('API response was not valid JSON');
 		}
@@ -89,9 +132,15 @@ class SlackApi
 	 *
 	 * @param string|array $data
 	 * @return bool|string
+	 * @throws JsonException
 	 */
 	public function sendMessage($data)
 	{
+		if (!$this->webhook_url) {
+			$msg = 'Cannot send message via webhook with no webhook defined.';
+			throw new RuntimeException($msg);
+		}
+
 		$msg = [];
 		if (is_string($data)) {
 			$msg['text'] = $data;
@@ -102,7 +151,7 @@ class SlackApi
 		$c = curl_init();
 		curl_setopt($c, CURLOPT_URL, $this->webhook_url);
 		curl_setopt($c, CURLOPT_POST, 1);
-		curl_setopt($c, CURLOPT_POSTFIELDS, json_encode($msg));
+		curl_setopt($c, CURLOPT_POSTFIELDS, json_encode($msg, JSON_THROW_ON_ERROR));
 		curl_setopt($c, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($c, CURLOPT_HEADER, 0);
 		curl_setopt($c, CURLOPT_HTTPHEADER, ['Content-type: application/json']);
